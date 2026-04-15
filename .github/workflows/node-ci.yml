@@ -1,26 +1,48 @@
 name: Node CI
 
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
+ pull_request:
+  branches: [main]
+ push:
+  branches: [main]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+ test:
+  runs-on: ubuntu-latest
+  strategy:
+   matrix:
+    node-version: [18.x, 20.x]
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+  steps:
+   - uses: actions/checkout@v5
 
-      - name: Setup Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: '24.14.1'
+   - name: Use Node.js ${{ matrix.node-version }}
+     uses: actions/setup-node@v5
+     with:
+      node-version: ${{ matrix.node-version }}
+      cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install
+   - name: Install dependencies
+     run: npm ci
 
-      - name: Run tests
-        run: npm test
+   - name: Run linting
+     run: npm run lint
+
+   - name: Run tests
+     run: npm test
+
+ deploy-staging:
+  needs: test
+  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v5
+   
+   - name: Deploy to Vercel
+     uses: amondnet/vercel-action@v20
+     with:
+      vercel-token: ${{ secrets.VERCEL_TOKEN }}
+      vercel-org-id: ${{ secrets.ORG_ID }}
+      vercel-project-id: ${{ secrets.PROJECT_ID }}
+      vercel-args: '--prod' # Deploy to production/staging
+
