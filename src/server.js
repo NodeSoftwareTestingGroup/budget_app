@@ -17,6 +17,7 @@ const port = 5001;
 //import routes
 import userRoutes from './routes/userRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import budgetRoutes from './routes/budgetRoutes.js';
 
 config();
 connectDB();    
@@ -28,6 +29,7 @@ app.use(express.urlencoded({ extended: true })); // For parsing application/x-ww
 //Api routes
 app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
+app.use("/budgets", budgetRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
